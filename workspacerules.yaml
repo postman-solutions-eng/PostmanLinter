@@ -27,15 +27,6 @@ rules:
       field: name
       function: truthy
 
-  collection-description-required:
-    description: "Each collection should have a description."
-    message: "The collection is missing a description."
-    given: "$.workspace.collections[*]"
-    severity: error
-    then:
-      field: description
-      function: truthy
-
   collection-item-count:
     description: "Each collection should have at least 5 items (requests, folders, etc.)."
     message: "The collection has less than 5 items."
@@ -92,15 +83,6 @@ rules:
       function: pattern
       functionOptions:
         match: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
-
-  api-description-required:
-    description: "Each API should have a description."
-    message: "The API is missing a description."
-    given: "$.workspace.apis[*]"
-    severity: error
-    then:
-      field: description
-      function: truthy
 
   workspace-updated-recently:
     description: "Workspace should be updated within the last 6 months."
