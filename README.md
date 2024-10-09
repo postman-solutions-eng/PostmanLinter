@@ -2,7 +2,7 @@
 
 > This code is part of a blog post and is **not** actively maintained by Postman.
 
-Command line utility (bash script) to validate the quality of a collection.
+Command line utility (python script) to validate the quality of a collection.
 
 ## Purpose
 
@@ -43,10 +43,10 @@ export POSTMAN_API_KEY=PMAK_your_key
 
 ## Usage
 
-The [linter.sh](linter.sh) command receives the following arguments:
+The [linter.py](linter.py) command receives the following arguments:
 
 ```shell
-./linter.sh -c <collectionId> -k [APIKey] -r [rulesFilePath]
+python linter.py -c <collectionId> -k [APIKey] -r [rulesFilePath]
 ```
 
 | Argument      | Description                                                           |
