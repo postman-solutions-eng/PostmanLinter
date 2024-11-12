@@ -20,7 +20,7 @@ def fetch_json_from_postman(api_key, uid, resource_type):
     return response.json()
 
 def lint_json(file_path, ruleset_path):
-    spectral_path = "C:\\Users\\garre\\AppData\\Roaming\\npm\\spectral.cmd"  # Adjust this path
+    spectral_path = "C:\\Users\\Garrett London\\AppData\\Roaming\\npm\\spectral.cmd"  # Adjust this path
     try:
         result = subprocess.run(
             [spectral_path, "lint", file_path, "--ruleset", ruleset_path, "-f", "json", "--quiet"],
@@ -43,7 +43,7 @@ def process_results(source_json, results):
 
     # Format and print the results
     for message, errors in grouped_errors.items():
-        print(f"\n{len(errors)} occurrences of: {message}\n")
+        print(f"\n{len(errors)} occurrences of: {message}")
         for error in errors:
             path = error["path"]
             try:
