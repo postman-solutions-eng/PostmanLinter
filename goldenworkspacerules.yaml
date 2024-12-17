@@ -1,0 +1,196 @@
+rules:
+  collection-info-name-required:
+    description: "Collections must have a name."
+    message: "The collection is missing a name."
+    given: "$.collection.info"
+    severity: error
+    then:
+      field: name
+      function: truthy
+
+  collection-info-description-required:
+    description: "Collections must have a description."
+    message: "The collection is missing a description."
+    given: "$.collection.info"
+    severity: error
+    then:
+      field: description
+      function: truthy
+
+  folder-names-must-not-be-empty:
+    description: "Each folder must have a descriptive name."
+    message: "A folder is missing its name."
+    given: "$.collection.item[*]"
+    severity: error
+    then:
+      field: name
+      function: truthy
+
+  request-names-required:
+    description: "Each request must have a name."
+    message: "Request is missing a name."
+    given: "$.collection.item[*]..request"
+    severity: error
+    then:
+      field: name
+      function: truthy
+
+  requests-must-have-method:
+    description: "Each request must specify an HTTP method."
+    message: "A request is missing its method."
+    given: "$.collection.item[*]..request"
+    severity: error
+    then:
+      field: method
+      function: truthy
+
+  no-hardcoded-api-keys:
+    description: "API keys must not be hardcoded."
+    message: "Found a hardcoded API key value."
+    given: "$.collection.item[*]..auth.apikey[*].value"
+    severity: error
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "(XXX|TEST|api-key|hardcoded)"
+
+  no-personal-info-in-queries:
+    description: "Do not include personal info (e.g. credit card, SSN) in query parameters."
+    message: "Potential personal info found in query parameters."
+    given: "$.collection.item[*]..query[*].value"
+    severity: warning
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "(\\d{4}-\\d{4}-\\d{4}-\\d{4}|\\d{3}-\\d{2}-\\d{4})"
+
+  test-event-asserts-200:
+    description: "Test events should assert a successful (200) response."
+    message: "No 200 status assertion found in test event."
+    given: "$.collection.item[*]..event[?(@.listen == 'test')].script.exec"
+    severity: warning
+    then:
+      function: pattern
+      functionOptions:
+        match: "pm\\.test\\(\"Status code is 200\""
+
+  every-request-should-have-tests:
+    description: "Each request should have at least one test event."
+    message: "Request has no test event."
+    given: "$.collection.item[*]..request"
+    severity: warning
+    then:
+      function: truthy
+      functionOptions:
+        property: "^event.*\\[?\\]?\\..*listen.*test"
+
+  avoid-raw-prod-endpoints:
+    description: "Production endpoints should be referenced via variables, not hardcoded."
+    message: "A request uses a raw production URL instead of a variable."
+    given: "$.collection.item[*]..url.raw"
+    severity: warning
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "^(https?:\\/\\/)?(api\\.example\\.com|prod\\.example\\.com)"
+
+  require-prerequest-or-test-script-for-automation:
+    description: "At least one pre-request or test script is recommended per request for automation."
+    message: "No pre-request or test script found."
+    given: "$.collection.item[*]..request"
+    severity: info
+    then:
+      function: truthy
+      functionOptions:
+        property: "^event.*\\[?\\]?\\..*(listen:(prerequest|test))"
+
+  discourage-generic-collection-names:
+    description: "Do not use generic collection names like 'Demo' or 'A Cool Demo'."
+    message: "Collection name is too generic."
+    given: "$.collection.info.name"
+    severity: warning
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "^(Demo|A Cool Demo)$"
+
+  ensure-json-content-type-on-bodies:
+    description: "Requests with bodies should have a JSON content-type header."
+    message: "Missing or invalid Content-Type header for JSON body."
+    given: "$.collection.item[*]..request"
+    severity: warning
+    then:
+      function: falsy
+      functionOptions:
+        property: "body.raw"
+        notMatch: "^(?!.*)$" # If body is not empty, check the headers
+      field: header[?(@.key=='Content-Type')].value
+      # If body is non-empty JSON, we expect Content-Type: application/json
+      # For a more advanced pattern, you'd handle this differently, but this is a rough rule.
+
+  no-bearer-token-hardcoded:
+    description: "Bearer tokens should not be hardcoded in requests. Use variables."
+    message: "Hardcoded bearer token found."
+    given: "$.collection.item[*]..auth.bearer[*].value"
+    severity: error
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "^(TEST|hardcoded_token|XXX)$"
+
+  folders-should-have-description:
+    description: "Each folder should have a description to help others understand its purpose."
+    message: "Folder is missing a description."
+    given: "$.collection.item[*]"
+    severity: warning
+    then:
+      field: description
+      function: truthy
+
+  no-duplicate-folder-names:
+    description: "Folder names in the same collection should be unique."
+    message: "Duplicate folder names found."
+    given: "$.collection.item"
+    severity: error
+    then:
+      function: unique
+      functionOptions:
+        property: "name"
+
+  ensure-requests-use-variables-for-host:
+    description: "Requests should use variables for the host portion of the URL."
+    message: "Request URL host not using a variable."
+    given: "$.collection.item[*]..url.host"
+    severity: warning
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "^(postman-echo|api\\.getpostman\\.com|prod\\.example\\.com)$"
+
+  secret-vars-for-sensitive-info:
+    description: "Use secret variables for sensitive info instead of plain text."
+    message: "Sensitive info found outside secret variables."
+    given: "$.collection.item[*]..request"
+    severity: error
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "(password|secret|apiKey|token)"
+
+  test-event-should-check-response-structure:
+    description: "Test events should include assertions for response structure (JSON keys)."
+    message: "No assertion found for JSON structure in tests."
+    given: "$.collection.item[*]..event[?(@.listen == 'test')].script.exec"
+    severity: info
+    then:
+      function: pattern
+      functionOptions:
+        match: "pm\\.expect\\(pm\\.response\\.json\\(\\)\\).to\\.have\\.property"
+
+  no-empty-requests:
+    description: "Requests should not be completely empty (no URL)."
+    message: "Request URL is empty."
+    given: "$.collection.item[*]..request.url.raw"
+    severity: error
+    then:
+      function: truthy
