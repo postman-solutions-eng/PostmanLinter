@@ -115,7 +115,7 @@ def main():
             print(f"Custom ruleset file '{ruleset_path}' does not exist.")
             sys.exit(1)
     else:
-        ruleset_path = "rules.yaml" if resource_type == "collection" else "workspacerules.yaml"
+        ruleset_path = "rulesets/rules.yaml" if resource_type == "collection" else "rulesets/workspacerules.yaml"
         if not os.path.isfile(ruleset_path):
             print(f"Default ruleset file '{ruleset_path}' not found. Please provide a custom ruleset using -r.")
             sys.exit(1)
