@@ -38,7 +38,7 @@ rules:
         min: 5
 
   environment-name-convention:
-    description: "Environment names should follow the convention '<Project>-<Environment>' (e.g., 'Lifepack-Prod')."
+    description: "Environment names should follow the convention '<Project>-<Environment>' (e.g., 'PostBank-Prod')."
     message: "The environment name does not follow the convention '<Project>-<Environment>'."
     given: "$.workspace.environments[*].name"
     severity: warn
