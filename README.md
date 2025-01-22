@@ -2,13 +2,13 @@
 
 > This code is part of a blog post and is **not** actively maintained by Postman.
 
-Command line utility (python script) to validate the quality of a collection.
+Command line utility (python script) to validate the quality of a Postman collection, workspace, or private API network.
 
 ## Purpose
 
-This code demonstrates how to use the [Postman API](https://www.postman.com/postman/workspace/postman-public-workspace/collection/12959542-c8142d51-e97c-46b6-bd77-52bb66712c9a) and the [Spectral CLI](https://docs.stoplight.io/docs/spectral/9ffa04e052cc1-spectral-cli) to validate automatically the quality of a Postman collection.
+This code demonstrates how to use the [Postman API](https://www.postman.com/postman/workspace/postman-public-workspace/collection/12959542-c8142d51-e97c-46b6-bd77-52bb66712c9a) and the [Spectral CLI](https://docs.stoplight.io/docs/spectral/9ffa04e052cc1-spectral-cli) to validate automatically the quality of a Postman collection, workspace, or private API network.
 
-The script receives the Postman collection ID, downloads the collection using the Postman API, and validates the next rules:
+The script receives the Postman collection ID, workspace ID, or private network flag, downloads the respective data using the Postman API, and validates it against the specified rules.
 
 ### Errors
 
@@ -33,7 +33,7 @@ The script receives the Postman collection ID, downloads the collection using th
 
 The file [rules.yaml](rules.yaml) contains all the previous rules. Some of them require custom Javascript functions, which are also included in the repository.
 
-If any of the error rules doesn't pass for the collection being linted, the script returns an error status (1), which can be used in CI/CD processes to avoid further workflow steps.
+If any of the error rules doesn't pass for the resource being linted, the script returns an error status (1), which can be used in CI/CD processes to avoid further workflow steps.
 
 > NOTE: You need a valid [Postman API key](https://learning.postman.com/docs/developer/postman-api/authentication/) to execute the command. You can save the API key in an environment variable called `POSTMAN_API_KEY`, and the script will read it from there.
 
@@ -46,13 +46,15 @@ export POSTMAN_API_KEY=PMAK_your_key
 The [linter.py](linter.py) command receives the following arguments:
 
 ```shell
-python linter.py -c <collectionId> -k [APIKey] -r [rulesFilePath]
+python linter.py [-c <collectionId> | -w <workspaceId> | -p] -k [APIKey] -r [rulesFilePath]
 ```
 
 | Argument      | Description                                                           |
 | ------------- | --------------------------------------------------------------------- |
-| collectionId  | The id of the collection to save the new request to. Mandatory.       |
+| collectionId  | The id of the collection to lint.                                     |
+| workspaceId   | The id of the workspace to lint.                                      |
+| -p            | Flag to lint the private API network.                                 |
 | APIKey        | Postman API key. Defaults to the environment variable POSTMAN_API_KEY |
-| rulesFilePath | Path to rules file. Defaults to [rules.yaml](rules.yaml)              |
+| rulesFilePath | Path to rules file. Defaults to appropriate ruleset based on resource type |
 
 > NOTE: The script saves the results of the linting operation (detailed errors and warnings) in a file called `_result.json`. You can use that file to build and send notifications. The script initially only uses it to calculate the error status and return it.

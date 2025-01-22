@@ -9,7 +9,10 @@ import platform
 
 def fetch_json_from_postman(api_key, uid, resource_type):
     headers = {'x-api-key': api_key}
-    if resource_type == "collection":
+    
+    if resource_type == "private-network":
+        url = "https://api.postman.com/network/private"
+    elif resource_type == "collection":
         url = f"https://api.postman.com/collections/{uid}"
     elif resource_type == "workspace":
         url = f"https://api.postman.com/workspaces/{uid}"
@@ -89,10 +92,11 @@ def process_results(source_json, results):
                 print(f"Error accessing path: {e}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Lint a Postman collection or workspace using Spectral rules.")
+    parser = argparse.ArgumentParser(description="Lint a Postman collection, workspace, or private API network using Spectral rules.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-c", "--collection", help="Collection ID")
     group.add_argument("-w", "--workspace", help="Workspace ID")
+    group.add_argument("-p", "--private-network", action="store_true", help="Lint private API network")
     parser.add_argument("-r", "--ruleset", help="Path to custom Spectral ruleset file")
     parser.add_argument("-k", "--api-key", help="Postman API Key")
 
@@ -103,10 +107,22 @@ def main():
         print("POSTMAN_API_KEY environment variable is not set and no API key was provided via -k.")
         sys.exit(1)
 
-    resource_type = "collection" if args.collection else "workspace"
-    uid = args.collection if args.collection else args.workspace
-
-    source_json_file = f"_{resource_type}.json"
+    if args.private_network:
+        resource_type = "private-network"
+        # Fetch private network data
+        try:
+            source_json = fetch_json_from_postman(api_key, None, "private-network")
+        except requests.HTTPError as e:
+            print(f"Failed to fetch private network data: {e}")
+            sys.exit(1)
+    else:
+        resource_type = "collection" if args.collection else "workspace"
+        uid = args.collection if args.collection else args.workspace
+        try:
+            source_json = fetch_json_from_postman(api_key, uid, resource_type)
+        except requests.HTTPError as e:
+            print(f"Failed to fetch {resource_type} data: {e}")
+            sys.exit(1)
 
     # Determine ruleset path
     if args.ruleset:
@@ -115,20 +131,17 @@ def main():
             print(f"Custom ruleset file '{ruleset_path}' does not exist.")
             sys.exit(1)
     else:
-        ruleset_path = "rulesets/rules.yaml" if resource_type == "collection" else "rulesets/workspacerules.yaml"
+        if resource_type == "private-network":
+            ruleset_path = "rulesets/privatenetworkrules.yaml"
+        else:
+            ruleset_path = "rulesets/rules.yaml" if resource_type == "collection" else "rulesets/workspacerules.yaml"
+        
         if not os.path.isfile(ruleset_path):
             print(f"Default ruleset file '{ruleset_path}' not found. Please provide a custom ruleset using -r.")
             sys.exit(1)
 
-    # Fetch JSON data from Postman API
-    print("Fetching JSON data from Postman API...")
-    try:
-        source_json = fetch_json_from_postman(api_key, uid, resource_type)
-    except requests.HTTPError as e:
-        print(f"Failed to fetch data from Postman API: {e}")
-        sys.exit(1)
-
-    # Save the source JSON to a file
+    # Save source JSON and process
+    source_json_file = f"_{resource_type}.json"
     try:
         with open(source_json_file, "w") as f:
             json.dump(source_json, f, indent=4)
@@ -136,15 +149,10 @@ def main():
         print(f"Failed to write JSON data to file '{source_json_file}': {e}")
         sys.exit(1)
 
-    # Get the appropriate Spectral command based on OS
+    # Get Spectral command and lint
     spectral_cmd = get_spectral_command()
-
-    # Lint the JSON file using Spectral
-    print("Linting JSON data...")
+    print(f"Linting {resource_type} data...")
     results = lint_json(spectral_cmd, source_json_file, ruleset_path)
-
-    # Process the results and print the output
-    print("Processing linting results...")
     process_results(source_json, results)
 
 if __name__ == "__main__":

@@ -1,0 +1,66 @@
+{
+  "rules": {
+    "elements-name-casing": {
+      "description": "Element names should be in camelCase.",
+      "severity": "warning",
+      "given": "$.elements[*].name",
+      "then": {
+        "function": "pattern",
+        "functionOptions": {
+          "match": "^[a-z][a-zA-Z0-9]*$"
+        }
+      }
+    },
+    "elements-summary-length": {
+      "description": "Element summaries should not exceed 100 characters.",
+      "severity": "warning",
+      "given": "$.elements[*].summary",
+      "then": {
+        "function": "maxLength",
+        "functionOptions": {
+          "value": 100
+        }
+      }
+    },
+    "elements-description-required": {
+      "description": "Elements should have a description.",
+      "severity": "warning",
+      "given": "$.elements[*]",
+      "then": {
+        "field": "description",
+        "function": "defined"
+      }
+    },
+    "folders-name-casing": {
+      "description": "Folder names should be in PascalCase.",
+      "severity": "warning",
+      "given": "$.folders[*].name",
+      "then": {
+        "function": "pattern",
+        "functionOptions": {
+          "match": "^[A-Z][a-zA-Z0-9]*$"
+        }
+      }
+    },
+    "folders-description-required": {
+      "description": "Folders should have a description.",
+      "severity": "warning",
+      "given": "$.folders[*]",
+      "then": {
+        "field": "description",
+        "function": "defined"
+      }
+    },
+    "elements-type-valid": {
+      "description": "Elements should have a valid type.",
+      "severity": "error",
+      "given": "$.elements[*].type",
+      "then": {
+        "function": "enum",
+        "functionOptions": {
+          "values": ["api", "collection", "workspace"]
+        }
+      }
+    }
+  }
+}
